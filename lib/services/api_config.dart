@@ -1,5 +1,5 @@
 class ApiConfig {
-  static const String baseUrl = 'http://192.168.18.27:5000/api';
+ static const String baseUrl = 'http://localhost:5000/api';
   static const String authEndpoint = '/auth';
   static const String usersEndpoint = '/users';
   static const String doctorsEndpoint = '/doctors';
