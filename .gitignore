@@ -50,3 +50,5 @@ app.*.map.json
 Icare_backend-main/
 
 .vercel
+artifact.zip
+web/icare.apk
