@@ -10,7 +10,7 @@ class UserService {
 
   Future<Map<String, dynamic>> getUserProfile({String? token}) async {
     try {
-      final response = await _apiService.get('/users/profile', token: token);
+      final response = await _apiService.get('/auth/profile', token: token);
       if (response.statusCode == 200) {
         return {'success': true, 'user': response.data};
       }
