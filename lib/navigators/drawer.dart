@@ -97,17 +97,26 @@ class CustomDrawer extends ConsumerWidget {
 
     if (isLabRole(selectedRole)) {
       drawerItems = [
-        _drawerItem('Tasks', Icons.task_alt_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const TaskScreen()));
+        _drawerItem('Dashboard', Icons.dashboard_rounded, () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const TabsScreen()));
         }),
-        _drawerItem('Incoming Test Requests', Icons.biotech_rounded, () {
+        _drawerItem('Test Requests', Icons.biotech_rounded, () {
           Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => LabBookingsManagement()));
         }),
-        _drawerItem('Appointments', Icons.calendar_month_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyAppointmentsListScreen()));
+        _drawerItem('Manage Tests', Icons.science_outlined, () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const LabTestsManagement()));
+        }),
+        _drawerItem('Upload Reports', Icons.upload_file_rounded, () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const LabReportsScreen()));
+        }),
+        _drawerItem('Analytics', Icons.analytics_outlined, () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const LabAnalytics()));
         }),
         _drawerItem('Payment Invoices', Icons.receipt_long_rounded, () {
           Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const PaymentInvoices()));
+        }),
+        _drawerItem('Tasks', Icons.task_alt_rounded, () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const TaskScreen()));
         }),
         _drawerItem('Notifications', Icons.notifications_rounded, () {
           Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const NotificationScreen()));
@@ -220,53 +229,32 @@ class CustomDrawer extends ConsumerWidget {
         _drawerItem('Dashboard', Icons.dashboard_rounded, () {
           Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const PharmacistDashboard()));
         }),
-        _drawerItem('Profile Setup', Icons.edit_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const PharmacyProfileSetup()));
+        _drawerItem('Incoming Prescriptions', Icons.description_rounded, () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const PharmacyOrders()));
         }),
-        _drawerItem('Inventory', Icons.inventory_rounded, () {
+        _drawerItem('Inventory Management', Icons.inventory_rounded, () {
           Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const PharmacyInventory()));
         }),
-        _drawerItem('Orders', Icons.shopping_cart_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const PharmacyOrders()));
+        _drawerItem('Order Fulfillment', Icons.shopping_basket_rounded, () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyOrdersScreen()));
         }),
         _drawerItem('Analytics', Icons.analytics_rounded, () {
           Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const PharmacyAnalytics()));
         }),
-        _drawerItem('Tasks', Icons.task_alt_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const TaskScreen()));
-        }),
-        _drawerItem('Fulfillment History', Icons.shopping_basket_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyOrdersScreen()));
-        }),
         _drawerItem('Payment Invoices', Icons.receipt_long_rounded, () {
           Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const PaymentInvoices()));
         }),
-        _drawerItem('Appointments', Icons.calendar_month_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyAppointment()));
+        _drawerItem('Tasks', Icons.task_alt_rounded, () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const TaskScreen()));
         }),
         _drawerItem('Notifications', Icons.notifications_rounded, () {
           Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const NotificationScreen()));
         }),
+        _drawerItem('Profile Setup', Icons.edit_rounded, () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const PharmacyProfileSetup()));
+        }),
         _drawerItem('Help & Support', Icons.help_outline_rounded, () {
           Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const HelpAndSupport()));
-        }),
-        _drawerItem('Prescriptions', Icons.description_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const PrescriptionsScreen()));
-        }),
-        _drawerItem('Reminders', Icons.alarm_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const ReminderList()));
-        }),
-        _drawerItem('Wallet', Icons.account_balance_wallet_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const WalletScreen()));
-        }),
-        _drawerItem(coursesLabelForRole(selectedRole), Icons.school_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const Courses()));
-        }),
-        _drawerItem('Pharmacy Management', Icons.admin_panel_settings_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const PharmacyManagementScreen()));
-        }),
-        _drawerItem('Settings', Icons.settings_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const SettingsScreen()));
         }),
       ];
     } else if (isLabRole(selectedRole)) {
@@ -358,11 +346,23 @@ class CustomDrawer extends ConsumerWidget {
       ];
     } else if (isInstructorRole(selectedRole)) {
       drawerItems = [
-        _drawerItem('Pharmacies', Icons.medication_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const PharmaciesScreen()));
+        _drawerItem('Dashboard', Icons.dashboard_rounded, () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const TabsScreen()));
         }),
-        _drawerItem('Reports & Lab Results', Icons.biotech_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => LabsListScreen()));
+        _drawerItem('My Courses', Icons.school_rounded, () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const Courses()));
+        }),
+        _drawerItem('Create Course', Icons.add_circle_outline_rounded, () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const UploadCourse()));
+        }),
+        _drawerItem('Student Progress', Icons.people_rounded, () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyLearning()));
+        }),
+        _drawerItem('Tasks', Icons.task_alt_rounded, () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const TaskScreen()));
+        }),
+        _drawerItem('Notifications', Icons.notifications_rounded, () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const NotificationScreen()));
         }),
         _drawerItem('Help & Support', Icons.help_outline_rounded, () {
           Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const HelpAndSupport()));
