@@ -26,14 +26,16 @@ class AuthService {
           'email': email,
           'password': password,
           'role': role,
-          'phone': phoneNumber ?? '0000000000',
+          'phone': phoneNumber ?? '',
         },
       );
 
       if (response.statusCode == 201) {
         final data = response.data;
-        await _saveToken(data['token']);
-        return {'success': true, 'data': data};
+        // Backend returns { success, data: { token, user } }
+        final token = data['data']?['token'] ?? data['token'];
+        await _saveToken(token);
+        return {'success': true, 'data': data['data'] ?? data};
       }
       return {'success': false, 'message': 'Registration failed'};
     } on DioException catch (e) {
@@ -80,10 +82,11 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        await _saveToken(data['token']);
-        await _saveUserData(data);
+        // Backend returns { success, data: { token, user } }
+        final token = data['data']?['token'] ?? data['token'];
+        await _saveToken(token);
         FcmService().getAndSaveToken();
-        return {'success': true, 'data': data};
+        return {'success': true, 'data': data['data'] ?? data};
       }
       return {'success': false, 'message': 'Login failed'};
     } on DioException catch (e) {

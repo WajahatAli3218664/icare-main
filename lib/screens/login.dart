@@ -1275,22 +1275,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   String _mapRoleToBackend(String frontendRole) {
-    // Map frontend roles to backend enum values
     switch (frontendRole.toLowerCase()) {
       case 'patient':
-        return 'Patient';
+        return 'patient';
       case 'doctor':
-        return 'Doctor';
+        return 'doctor';
       case 'pharmacist':
-        return 'Pharmacy';
+      case 'pharmacy':
+        return 'pharmacy';
       case 'lab_technician':
-        return 'Laboratory';
+      case 'laboratory':
+        return 'lab';
       case 'instructor':
-        return 'Instructor';
+        return 'instructor';
       case 'student':
-        return 'Student';
+        return 'student';
       default:
-        return 'Patient';
+        return 'patient';
     }
   }
 
