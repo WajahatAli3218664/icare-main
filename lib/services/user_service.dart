@@ -12,7 +12,9 @@ class UserService {
     try {
       final response = await _apiService.get('/auth/profile', token: token);
       if (response.statusCode == 200) {
-        return {'success': true, 'user': response.data};
+        final body = response.data as Map<String, dynamic>;
+        final user = body['user'] ?? body['data']?['user'] ?? body;
+        return {'success': true, 'user': user};
       }
       return {'success': false, 'message': 'Failed to fetch profile'};
     } on DioException catch (e) {
