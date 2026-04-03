@@ -274,10 +274,408 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen>
         Expanded(child: Text(lab['name'] ?? 'Lab')), IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () {})]));
   }
 
-  void _addLaboratory() {}
-  void _addPharmacy() {}
-  void _addInstructor() {}
-  void _addStudent() {}
-  void _approveDoctor(Map<String, dynamic> d) {}
-  void _rejectDoctor(Map<String, dynamic> d) {}
+  void _addLaboratory() {
+    showDialog(
+      context: context,
+      builder: (ctx) => _AddLaboratoryDialog(
+        onAdd: (labData) async {
+          setState(() => _isLoading = true);
+          try {
+            // In real implementation, call backend API
+            await Future.delayed(const Duration(seconds: 1));
+
+            setState(() {
+              _laboratories.add(labData);
+              _isLoading = false;
+            });
+
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Laboratory "${labData['name']}" added successfully'),
+                  backgroundColor: const Color(0xFF10B981),
+                ),
+              );
+            }
+          } catch (e) {
+            setState(() => _isLoading = false);
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Failed to add laboratory'),
+                  backgroundColor: Color(0xFFEF4444),
+                ),
+              );
+            }
+          }
+        },
+      ),
+    );
+  }
+
+  void _addPharmacy() {
+    showDialog(
+      context: context,
+      builder: (ctx) => _AddPharmacyDialog(
+        onAdd: (pharmacyData) async {
+          setState(() => _isLoading = true);
+          try {
+            await Future.delayed(const Duration(seconds: 1));
+            setState(() {
+              _pharmacies.add(pharmacyData);
+              _isLoading = false;
+            });
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Pharmacy "${pharmacyData['name']}" added successfully'),
+                  backgroundColor: const Color(0xFF10B981),
+                ),
+              );
+            }
+          } catch (e) {
+            setState(() => _isLoading = false);
+          }
+        },
+      ),
+    );
+  }
+
+  void _addInstructor() {
+    showDialog(
+      context: context,
+      builder: (ctx) => _AddInstructorDialog(
+        onAdd: (instructorData) async {
+          setState(() => _isLoading = true);
+          try {
+            await Future.delayed(const Duration(seconds: 1));
+            setState(() {
+              _instructors.add(instructorData);
+              _isLoading = false;
+            });
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Instructor "${instructorData['name']}" added successfully'),
+                  backgroundColor: const Color(0xFF10B981),
+                ),
+              );
+            }
+          } catch (e) {
+            setState(() => _isLoading = false);
+          }
+        },
+      ),
+    );
+  }
+
+  void _addStudent() {
+    showDialog(
+      context: context,
+      builder: (ctx) => _AddStudentDialog(
+        onAdd: (studentData) async {
+          setState(() => _isLoading = true);
+          try {
+            await Future.delayed(const Duration(seconds: 1));
+            setState(() {
+              _students.add(studentData);
+              _isLoading = false;
+            });
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Student "${studentData['name']}" added successfully'),
+                  backgroundColor: const Color(0xFF10B981),
+                ),
+              );
+            }
+          } catch (e) {
+            setState(() => _isLoading = false);
+          }
+        },
+      ),
+    );
+  }
+
+  void _approveDoctor(Map<String, dynamic> d) async {
+    setState(() => _isLoading = true);
+    try {
+      // Call backend API to approve doctor
+      await Future.delayed(const Duration(seconds: 1));
+      setState(() {
+        _pendingDoctors.remove(d);
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Dr. ${d['name']} approved successfully'),
+            backgroundColor: const Color(0xFF10B981),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _rejectDoctor(Map<String, dynamic> d) async {
+    setState(() => _isLoading = true);
+    try {
+      await Future.delayed(const Duration(seconds: 1));
+      setState(() {
+        _pendingDoctors.remove(d);
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Dr. ${d['name']} rejected'),
+            backgroundColor: const Color(0xFFF59E0B),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
+}
+
+// Laboratory Addition Dialog
+class _AddLaboratoryDialog extends StatefulWidget {
+  final Function(Map<String, dynamic>) onAdd;
+  const _AddLaboratoryDialog({required this.onAdd});
+
+  @override
+  State<_AddLaboratoryDialog> createState() => _AddLaboratoryDialogState();
+}
+
+class _AddLaboratoryDialogState extends State<_AddLaboratoryDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _licenseController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _cityController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _licenseController.dispose();
+    _addressController.dispose();
+    _cityController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: const Text('Add Laboratory Partner', style: TextStyle(fontWeight: FontWeight.w800)),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Laboratory Name *', border: OutlineInputBorder()),
+                validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Email *', border: OutlineInputBorder()),
+                validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _phoneController,
+                decoration: const InputDecoration(labelText: 'Phone *', border: OutlineInputBorder()),
+                validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _licenseController,
+                decoration: const InputDecoration(labelText: 'License Number *', border: OutlineInputBorder()),
+                validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _addressController,
+                decoration: const InputDecoration(labelText: 'Address *', border: OutlineInputBorder()),
+                maxLines: 2,
+                validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _cityController,
+                decoration: const InputDecoration(labelText: 'City *', border: OutlineInputBorder()),
+                validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        ElevatedButton(
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              final labData = {
+                'name': _nameController.text,
+                'email': _emailController.text,
+                'phone': _phoneController.text,
+                'license': _licenseController.text,
+                'address': _addressController.text,
+                'city': _cityController.text,
+                'createdAt': DateTime.now().toIso8601String(),
+              };
+              Navigator.pop(context);
+              widget.onAdd(labData);
+            }
+          },
+          child: const Text('Add Laboratory'),
+        ),
+      ],
+    );
+  }
+}
+
+// Pharmacy Addition Dialog
+class _AddPharmacyDialog extends StatefulWidget {
+  final Function(Map<String, dynamic>) onAdd;
+  const _AddPharmacyDialog({required this.onAdd});
+
+  @override
+  State<_AddPharmacyDialog> createState() => _AddPharmacyDialogState();
+}
+
+class _AddPharmacyDialogState extends State<_AddPharmacyDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _licenseController = TextEditingController();
+  final _addressController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: const Text('Add Pharmacy Partner'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(controller: _nameController, decoration: const InputDecoration(labelText: 'Pharmacy Name *'), validator: (v) => v?.isEmpty ?? true ? 'Required' : null),
+            TextFormField(controller: _emailController, decoration: const InputDecoration(labelText: 'Email *'), validator: (v) => v?.isEmpty ?? true ? 'Required' : null),
+            TextFormField(controller: _phoneController, decoration: const InputDecoration(labelText: 'Phone *'), validator: (v) => v?.isEmpty ?? true ? 'Required' : null),
+            TextFormField(controller: _licenseController, decoration: const InputDecoration(labelText: 'License *'), validator: (v) => v?.isEmpty ?? true ? 'Required' : null),
+            TextFormField(controller: _addressController, decoration: const InputDecoration(labelText: 'Address *'), validator: (v) => v?.isEmpty ?? true ? 'Required' : null),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        ElevatedButton(onPressed: () {
+          if (_formKey.currentState!.validate()) {
+            Navigator.pop(context);
+            widget.onAdd({'name': _nameController.text, 'email': _emailController.text, 'phone': _phoneController.text, 'license': _licenseController.text, 'address': _addressController.text});
+          }
+        }, child: const Text('Add')),
+      ],
+    );
+  }
+}
+
+// Instructor Addition Dialog
+class _AddInstructorDialog extends StatefulWidget {
+  final Function(Map<String, dynamic>) onAdd;
+  const _AddInstructorDialog({required this.onAdd});
+
+  @override
+  State<_AddInstructorDialog> createState() => _AddInstructorDialogState();
+}
+
+class _AddInstructorDialogState extends State<_AddInstructorDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _specialtyController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: const Text('Add Instructor'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(controller: _nameController, decoration: const InputDecoration(labelText: 'Name *'), validator: (v) => v?.isEmpty ?? true ? 'Required' : null),
+            TextFormField(controller: _emailController, decoration: const InputDecoration(labelText: 'Email *'), validator: (v) => v?.isEmpty ?? true ? 'Required' : null),
+            TextFormField(controller: _specialtyController, decoration: const InputDecoration(labelText: 'Specialty *'), validator: (v) => v?.isEmpty ?? true ? 'Required' : null),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        ElevatedButton(onPressed: () {
+          if (_formKey.currentState!.validate()) {
+            Navigator.pop(context);
+            widget.onAdd({'name': _nameController.text, 'email': _emailController.text, 'specialty': _specialtyController.text});
+          }
+        }, child: const Text('Add')),
+      ],
+    );
+  }
+}
+
+// Student Addition Dialog
+class _AddStudentDialog extends StatefulWidget {
+  final Function(Map<String, dynamic>) onAdd;
+  const _AddStudentDialog({required this.onAdd});
+
+  @override
+  State<_AddStudentDialog> createState() => _AddStudentDialogState();
+}
+
+class _AddStudentDialogState extends State<_AddStudentDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: const Text('Add Student'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(controller: _nameController, decoration: const InputDecoration(labelText: 'Name *'), validator: (v) => v?.isEmpty ?? true ? 'Required' : null),
+            TextFormField(controller: _emailController, decoration: const InputDecoration(labelText: 'Email *'), validator: (v) => v?.isEmpty ?? true ? 'Required' : null),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        ElevatedButton(onPressed: () {
+          if (_formKey.currentState!.validate()) {
+            Navigator.pop(context);
+            widget.onAdd({'name': _nameController.text, 'email': _emailController.text});
+          }
+        }, child: const Text('Add')),
+      ],
+    );
+  }
 }
