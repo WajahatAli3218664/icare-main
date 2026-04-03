@@ -15,8 +15,18 @@ class UserService {
         return {'success': true, 'user': response.data};
       }
       return {'success': false, 'message': 'Failed to fetch profile'};
-    } on DioException catch (_) {
-      return _hub.getUserProfile(token: token);
+    } on DioException catch (e) {
+      // Only fall back to standalone on network errors, not auth/server errors
+      final isNetwork = e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.connectionError ||
+          e.response == null;
+      if (isNetwork) {
+        return _hub.getUserProfile(token: token);
+      }
+      // For 401/403/404 etc, return failure so caller can handle it
+      return {'success': false, 'message': 'Profile fetch failed (${e.response?.statusCode})'};
     } catch (_) {
       return _hub.getUserProfile(token: token);
     }

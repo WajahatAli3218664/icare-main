@@ -1158,53 +1158,40 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
         if (result['success']) {
           print("✅ Login successful, token saved");
-          print("🔍 Fetching user profile...");
 
-          // Get the token from the login result
           final token = result['data']['token'];
           print("🔑 Token from login: ${token.substring(0, 20)}...");
 
-          // Fetch user profile with the token directly (don't rely on storage yet)
+          // Try to fetch profile, but fall back to login response data if it fails
           final profileResult = await _userService.getUserProfile(token: token);
-
           print("📥 Profile result: ${profileResult['success']}");
 
-          if (profileResult['success'] && mounted) {
-            print("✅ Profile fetched successfully");
+          Map<String, dynamic>? userData;
+          if (profileResult['success']) {
+            userData = profileResult['user'];
+          } else if (result['data']['user'] != null) {
+            // Use user data from login response directly
+            userData = result['data']['user'] as Map<String, dynamic>;
+            print("⚠️ Profile fetch failed, using login response user data");
+          }
 
-            // Store user data in provider
-            final userData = profileResult['user'];
+          if (userData != null && mounted) {
             print("📋 User data: $userData");
-
             final user = app_user.User.fromJson(userData);
-            print(
-              "👤 User object created: ${user.name}, ${user.email}, ${user.role}",
-            );
+            print("👤 User object: ${user.name}, ${user.email}, ${user.role}");
 
             ref.read(authProvider.notifier).setUser(user);
-            print("✅ User set in provider");
+            ref.read(authProvider.notifier).setUserToken(token);
 
-            ref
-                .read(authProvider.notifier)
-                .setUserToken(result['data']['token']);
-            print("✅ Token set in provider");
-
-            // Verify the role is set
             final currentRole = ref.read(authProvider).userRole;
             print("🔍 Current role in provider: '$currentRole'");
-
-            print(
-              "✅ Logged in as: ${user.name} (${user.email}) - Role: ${user.role}",
-            );
 
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (ctx) => const TabsScreen()),
             );
           } else {
-            print("❌ Failed to fetch profile: ${profileResult['message']}");
-            _showError(
-              'Failed to load user profile: ${profileResult['message']}',
-            );
+            print("❌ Failed to get user data: ${profileResult['message']}");
+            _showError('Failed to load user profile: ${profileResult['message']}');
           }
         } else {
           print("❌ Login failed: ${result['message']}");
