@@ -990,7 +990,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                           fontSize: 13,
                                           color: AppColors.primaryColor,
                                           fontWeight: FontWeight.w600,
-                                          textDecoration: TextDecoration.underline,
+                                          decoration: TextDecoration.underline,
                                         ),
                                       ),
                                     ],

@@ -353,10 +353,10 @@ class CustomDrawer extends ConsumerWidget {
           Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const Courses()));
         }),
         _drawerItem('Create Course', Icons.add_circle_outline_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const UploadCourse()));
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => UploadCourse()));
         }),
         _drawerItem('Student Progress', Icons.people_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyLearning()));
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => MyLearning()));
         }),
         _drawerItem('Tasks', Icons.task_alt_rounded, () {
           Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const TaskScreen()));
