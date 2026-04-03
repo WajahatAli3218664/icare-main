@@ -36,18 +36,23 @@ class AuthService {
         return {'success': true, 'data': data};
       }
       return {'success': false, 'message': 'Registration failed'};
-    } on DioException catch (_) {
-      final fallback = await _hub.register(
-        name: name,
-        email: email,
-        password: password,
-        role: role,
-        phoneNumber: phoneNumber,
-      );
-      if (fallback['success'] == true) {
-        await _saveToken(fallback['data']['token']);
+    } on DioException catch (e) {
+      // Only fall back to standalone on network/connectivity errors, not server errors
+      if (_isNetworkError(e)) {
+        final fallback = await _hub.register(
+          name: name,
+          email: email,
+          password: password,
+          role: role,
+          phoneNumber: phoneNumber,
+        );
+        if (fallback['success'] == true) {
+          await _saveToken(fallback['data']['token']);
+        }
+        return fallback;
       }
-      return fallback;
+      final msg = e.response?.data?['message'] ?? e.response?.data?['error'] ?? 'Registration failed (${e.response?.statusCode})';
+      return {'success': false, 'message': msg};
     } catch (_) {
       final fallback = await _hub.register(
         name: name,
@@ -81,13 +86,18 @@ class AuthService {
         return {'success': true, 'data': data};
       }
       return {'success': false, 'message': 'Login failed'};
-    } on DioException catch (_) {
-      final fallback = await _hub.login(email: email, password: password);
-      if (fallback['success'] == true) {
-        await _saveToken(fallback['data']['token']);
-        FcmService().getAndSaveToken();
+    } on DioException catch (e) {
+      // Only fall back to standalone on network/connectivity errors, not server errors
+      if (_isNetworkError(e)) {
+        final fallback = await _hub.login(email: email, password: password);
+        if (fallback['success'] == true) {
+          await _saveToken(fallback['data']['token']);
+          FcmService().getAndSaveToken();
+        }
+        return fallback;
       }
-      return fallback;
+      final msg = e.response?.data?['message'] ?? e.response?.data?['error'] ?? 'Login failed (${e.response?.statusCode})';
+      return {'success': false, 'message': msg};
     } catch (_) {
       final fallback = await _hub.login(email: email, password: password);
       if (fallback['success'] == true) {
@@ -96,6 +106,14 @@ class AuthService {
       }
       return fallback;
     }
+  }
+
+  bool _isNetworkError(DioException e) {
+    return e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.connectionError ||
+        e.response == null;
   }
 
   Future<void> _saveToken(String token) async {
