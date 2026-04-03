@@ -70,7 +70,6 @@ import 'package:icare/screens/referrals_screen.dart';
 import 'package:icare/screens/admin_dashboard.dart';
 import 'package:icare/screens/security_console_screen.dart';
 import 'package:icare/screens/subscription_plans_screen.dart';
-import 'package:icare/widgets/apk_download_banner.dart';
 
 class TabsScreen extends ConsumerStatefulWidget {
   const TabsScreen({super.key});
