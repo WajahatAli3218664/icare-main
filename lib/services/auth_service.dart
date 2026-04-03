@@ -90,7 +90,6 @@ class AuthService {
       }
       return {'success': false, 'message': 'Login failed'};
     } on DioException catch (e) {
-      // Only fall back to standalone on network/connectivity errors, not server errors
       if (_isNetworkError(e)) {
         final fallback = await _hub.login(email: email, password: password);
         if (fallback['success'] == true) {
@@ -101,13 +100,8 @@ class AuthService {
       }
       final msg = e.response?.data?['message'] ?? e.response?.data?['error'] ?? 'Login failed (${e.response?.statusCode})';
       return {'success': false, 'message': msg};
-    } catch (_) {
-      final fallback = await _hub.login(email: email, password: password);
-      if (fallback['success'] == true) {
-        await _saveToken(fallback['data']['token']);
-        FcmService().getAndSaveToken();
-      }
-      return fallback;
+    } catch (e) {
+      return {'success': false, 'message': 'An unexpected error occurred. Please try again.'};
     }
   }
 
