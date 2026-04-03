@@ -8,6 +8,7 @@ import 'package:icare/screens/tabs.dart';
 import 'package:icare/screens/lab_profile_setup.dart';
 import 'package:icare/screens/pharmacy_profile_setup.dart';
 import 'package:icare/screens/student_profile_setup.dart';
+import 'package:icare/screens/terms_and_conditions.dart';
 import 'package:icare/services/auth_service.dart';
 import 'package:icare/services/user_service.dart';
 import 'package:icare/models/user.dart' as app_user;
@@ -37,6 +38,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool rememberMe = false;
   bool isLogin = true;
   bool isLoading = false;
+  bool acceptTerms = false;
 
   @override
   Widget build(BuildContext context) {
@@ -394,6 +396,68 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     }
                                     return null;
                                   },
+                                ),
+                              ],
+
+                              if (!isLogin) ...[
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: Checkbox(
+                                        value: acceptTerms,
+                                        onChanged: (val) {
+                                          setState(() => acceptTerms = val!);
+                                        },
+                                        activeColor: AppColors.primaryColor,
+                                        checkColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(5),
+                                        ),
+                                        side: const BorderSide(
+                                          color: Color(0xFFCBD5E1),
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Wrap(
+                                        children: [
+                                          const Text(
+                                            "I agree to the ",
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
+                                              color: Color(0xFF64748B),
+                                              fontFamily: "Gilroy-Medium",
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                  builder: (ctx) => const TermsAndConditions(),
+                                                ),
+                                              );
+                                            },
+                                            child: const Text(
+                                              "Terms & Conditions",
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600,
+                                                color: AppColors.primaryColor,
+                                                fontFamily: "Gilroy-SemiBold",
+                                                decoration: TextDecoration.underline,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
 
@@ -890,6 +954,50 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 return null;
                               },
                             ),
+                            SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: acceptTerms,
+                                  onChanged: (val) {
+                                    setState(() => acceptTerms = val!);
+                                  },
+                                  activeColor: AppColors.primary500,
+                                  checkColor: Colors.white,
+                                  side: BorderSide(
+                                    color: AppColors.lightGrey200,
+                                    width: 2,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Wrap(
+                                    children: [
+                                      CustomText(
+                                        text: "I agree to the ",
+                                        fontSize: 13,
+                                        color: AppColors.themeBlack,
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (ctx) => const TermsAndConditions(),
+                                            ),
+                                          );
+                                        },
+                                        child: CustomText(
+                                          text: "Terms & Conditions",
+                                          fontSize: 13,
+                                          color: AppColors.primaryColor,
+                                          fontWeight: FontWeight.w600,
+                                          textDecoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
 
                           if (isLogin) ...[
@@ -1108,6 +1216,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
         if (selectedRole.isEmpty) {
           _showError('Please select your role first');
+          setState(() => isLoading = false);
+          return;
+        }
+
+        // Check if terms are accepted
+        if (!acceptTerms) {
+          _showError('Please accept the Terms & Conditions to continue');
           setState(() => isLoading = false);
           return;
         }

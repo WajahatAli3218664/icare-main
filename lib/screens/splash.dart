@@ -16,12 +16,12 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
-    // Zoom OUT: 1.4x → 1.0x (client req)
-    _scale = Tween<double>(begin: 1.4, end: 1.0)
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
+    // No zoom - just subtle fade in
+    _scale = Tween<double>(begin: 1.0, end: 1.0)
         .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
     _opacity = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0.0, 0.5, curve: Curves.easeIn)));
+        .animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0.0, 0.6, curve: Curves.easeIn)));
     _ctrl.forward();
   }
 
