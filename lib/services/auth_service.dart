@@ -82,13 +82,19 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = response.data;
+        print('✅ Login response data: $data');
         // Backend returns { success, data: { token, user } }
-        final token = data['data']?['token'] ?? data['token'];
+        final inner = data['data'] ?? data;
+        final token = inner['token']?.toString();
+        if (token == null || token.isEmpty) {
+          return {'success': false, 'message': 'No token received from server'};
+        }
         await _saveToken(token);
         FcmService().getAndSaveToken();
-        return {'success': true, 'data': data['data'] ?? data};
+        return {'success': true, 'data': inner};
       }
-      return {'success': false, 'message': 'Login failed'};
+      final errData = response.data;
+      return {'success': false, 'message': errData?['message'] ?? 'Login failed (${response.statusCode})'};
     } on DioException catch (e) {
       if (_isNetworkError(e)) {
         final fallback = await _hub.login(email: email, password: password);
@@ -101,6 +107,11 @@ class AuthService {
       final msg = e.response?.data?['message'] ?? e.response?.data?['error'] ?? 'Login failed (${e.response?.statusCode})';
       return {'success': false, 'message': msg};
     } catch (e) {
+      print('❌ Login unexpected error: $e');
+      if (e is DioException) {
+        final msg = e.response?.data?['message'] ?? e.response?.data?['error'] ?? 'Login failed (${e.response?.statusCode})';
+        return {'success': false, 'message': msg};
+      }
       return {'success': false, 'message': 'An unexpected error occurred. Please try again.'};
     }
   }
