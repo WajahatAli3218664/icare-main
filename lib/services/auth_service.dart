@@ -22,11 +22,11 @@ class AuthService {
       final response = await _apiService.post(
         ApiConfig.register,
         {
-          'name': name,
+          'username': name,
           'email': email,
           'password': password,
           'role': role,
-          'phoneNumber': phoneNumber ?? '0000000000',
+          'phone': phoneNumber ?? '0000000000',
         },
       );
 
