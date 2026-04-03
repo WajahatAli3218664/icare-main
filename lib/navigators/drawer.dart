@@ -60,6 +60,7 @@ import 'package:icare/screens/clinical_audit_screen.dart';
 import 'package:icare/screens/referrals_screen.dart';
 import 'package:icare/screens/security_console_screen.dart';
 import 'package:icare/screens/subscription_plans_screen.dart';
+import 'package:icare/screens/upload_course.dart';
 import 'package:icare/utils/imagePaths.dart';
 import 'package:icare/utils/theme.dart';
 import 'package:icare/utils/role_ui.dart';
@@ -353,10 +354,10 @@ class CustomDrawer extends ConsumerWidget {
           Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const Courses()));
         }),
         _drawerItem('Create Course', Icons.add_circle_outline_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => UploadCourse()));
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const UploadCourseScreen()));
         }),
         _drawerItem('Student Progress', Icons.people_rounded, () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => MyLearning()));
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyLearningScreen()));
         }),
         _drawerItem('Tasks', Icons.task_alt_rounded, () {
           Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const TaskScreen()));
