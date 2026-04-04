@@ -115,7 +115,7 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
                 children: [
                   _buildFilterChip('All', 'all', _appointments.length),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Pending', 'pending', 
+                  _buildFilterChip('Pending', 'pending',
                     _appointments.where((a) => a.status == 'pending').length),
                   const SizedBox(width: 8),
                   _buildFilterChip('Confirmed', 'confirmed',
@@ -123,6 +123,9 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
                   const SizedBox(width: 8),
                   _buildFilterChip('Completed', 'completed',
                     _appointments.where((a) => a.status == 'completed').length),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('Cancelled', 'cancelled',
+                    _appointments.where((a) => a.status == 'cancelled').length),
                 ],
               ),
             ),

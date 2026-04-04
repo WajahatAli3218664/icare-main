@@ -54,10 +54,13 @@ class _PatientDashboardState extends ConsumerState<PatientDashboard> {
   List<AppointmentDetail> get _upcomingAppointments {
     final now = DateTime.now();
     return _appointments.where((a) {
-      return (a.status == 'confirmed' || a.status == 'pending') && 
+      return (a.status == 'confirmed' || a.status == 'pending') &&
              a.date.isAfter(now.subtract(const Duration(days: 1)));
     }).toList()..sort((a, b) => a.date.compareTo(b.date));
   }
+
+  List<AppointmentDetail> get _cancelledAppointments =>
+      _appointments.where((a) => a.status == 'cancelled').toList();
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +84,8 @@ class _PatientDashboardState extends ConsumerState<PatientDashboard> {
                     _buildQuickStats(isDesktop),
                     const SizedBox(height: 24),
                     _buildUpcomingAppointments(),
+                    const SizedBox(height: 24),
+                    _buildCancelledAppointments(),
                     const SizedBox(height: 24),
                     _buildQuickActions(isDesktop),
                     const SizedBox(height: 24),
@@ -172,6 +177,8 @@ class _PatientDashboardState extends ConsumerState<PatientDashboard> {
               Expanded(child: _buildStatCard('Medical Records', _medicalRecords.length, Icons.folder_rounded, const Color(0xFF10B981))),
               const SizedBox(width: 16),
               Expanded(child: _buildStatCard('Upcoming', _upcomingAppointments.length, Icons.schedule_rounded, const Color(0xFFF59E0B))),
+              const SizedBox(width: 16),
+              Expanded(child: _buildStatCard('Cancelled', _cancelledAppointments.length, Icons.cancel_rounded, const Color(0xFFEF4444))),
             ],
           );
         }
@@ -186,7 +193,13 @@ class _PatientDashboardState extends ConsumerState<PatientDashboard> {
               ],
             ),
             const SizedBox(height: 12),
-            _buildStatCard('Upcoming', _upcomingAppointments.length, Icons.schedule_rounded, const Color(0xFFF59E0B)),
+            Row(
+              children: [
+                Expanded(child: _buildStatCard('Upcoming', _upcomingAppointments.length, Icons.schedule_rounded, const Color(0xFFF59E0B))),
+                const SizedBox(width: 12),
+                Expanded(child: _buildStatCard('Cancelled', _cancelledAppointments.length, Icons.cancel_rounded, const Color(0xFFEF4444))),
+              ],
+            ),
           ],
         );
       },
@@ -401,6 +414,70 @@ class _PatientDashboardState extends ConsumerState<PatientDashboard> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildCancelledAppointments() {
+    if (_cancelledAppointments.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Cancelled Appointments',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+        ),
+        const SizedBox(height: 16),
+        Column(
+          children: _cancelledAppointments.take(3).map((appointment) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 50, height: 50,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.cancel_rounded, color: Color(0xFFEF4444), size: 24),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Dr. ${appointment.doctor?.name ?? 'Doctor'}',
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          DateFormat('MMM dd, yyyy').format(appointment.date),
+                          style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text('CANCELLED', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white)),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 

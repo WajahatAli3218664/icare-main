@@ -86,19 +86,20 @@ class AppointmentService {
       final response = await _apiService.put(
         '/appointments/update_status',
         {
-          'appointmentId': appointmentId,
+          'appointmentId': int.tryParse(appointmentId) ?? appointmentId,
           'status': status,
         },
       );
       final data = response.data as Map<String, dynamic>;
-      return {
-        'success': true,
-        'message': data['message'] ?? 'Status updated successfully',
-      };
-    } on DioException catch (_) {
-      return _hub.updateAppointmentStatus(appointmentId: appointmentId, status: status);
-    } catch (_) {
-      return _hub.updateAppointmentStatus(appointmentId: appointmentId, status: status);
+      return {'success': true, 'message': data['message'] ?? 'Status updated successfully'};
+    } on DioException catch (e) {
+      final isNetwork = e.response == null ||
+          e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout;
+      if (isNetwork) return _hub.updateAppointmentStatus(appointmentId: appointmentId, status: status);
+      return {'success': false, 'message': e.response?.data?['message'] ?? 'Failed to update status'};
+    } catch (e) {
+      return {'success': false, 'message': 'An error occurred. Please try again.'};
     }
   }
 }
