@@ -54,18 +54,27 @@ class AppointmentService {
       final List<AppointmentDetail> appointments = [];
       if (data['appointments'] != null) {
         for (var appointmentJson in data['appointments']) {
-          appointments.add(AppointmentDetail.fromJson(appointmentJson));
+          try {
+            appointments.add(AppointmentDetail.fromJson(appointmentJson));
+          } catch (e) {
+            print('⚠️ Skipping appointment parse error: $e | data: $appointmentJson');
+          }
         }
       }
       return {
         'success': true,
         'appointments': appointments,
-        'count': data['count'] ?? 0,
+        'count': data['count'] ?? appointments.length,
       };
-    } on DioException catch (_) {
-      return _hub.getMyAppointmentsDetailed();
-    } catch (_) {
-      return _hub.getMyAppointmentsDetailed();
+    } on DioException catch (e) {
+      final isNetwork = e.response == null ||
+          e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout;
+      if (isNetwork) return _hub.getMyAppointmentsDetailed();
+      return {'success': false, 'appointments': <AppointmentDetail>[], 'message': e.response?.data?['message'] ?? 'Failed to load appointments'};
+    } catch (e) {
+      print('❌ getMyAppointmentsDetailed error: $e');
+      return {'success': false, 'appointments': <AppointmentDetail>[], 'message': e.toString()};
     }
   }
 
