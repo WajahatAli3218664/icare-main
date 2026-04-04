@@ -49,12 +49,13 @@ class _DoctorDashboardState extends ConsumerState<DoctorDashboard> {
   }
 
   List<AppointmentDetail> get _todayAppointments {
-    final today = DateTime.now();
-    return _appointments.where((a) {
-      return a.date.year == today.year &&
-             a.date.month == today.month &&
-             a.date.day == today.day;
-    }).toList();
+    final now = DateTime.now();
+    return _appointments
+        .where((a) =>
+            (a.status == 'pending' || a.status == 'confirmed') &&
+            a.date.isAfter(now.subtract(const Duration(days: 1))))
+        .toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
   }
 
   int get _pendingCount => _appointments.where((a) => a.status == 'pending').length;
@@ -271,7 +272,7 @@ class _DoctorDashboardState extends ConsumerState<DoctorDashboard> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              "Today's Appointments",
+              'Upcoming Appointments',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
@@ -307,7 +308,7 @@ class _DoctorDashboardState extends ConsumerState<DoctorDashboard> {
                       Icon(Icons.event_available_rounded, size: 48, color: Colors.grey.shade300),
                       const SizedBox(height: 12),
                       const Text(
-                        'No appointments today',
+                        'No upcoming appointments',
                         style: TextStyle(fontSize: 15, color: Color(0xFF64748B)),
                       ),
                     ],
