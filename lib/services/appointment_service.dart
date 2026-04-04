@@ -19,22 +19,31 @@ class AppointmentService {
       final response = await _apiService.post(
         '/appointments/book_appointment',
         {
-          'doctorId': doctorId,
+          'doctorId': int.tryParse(doctorId) ?? doctorId,
           'date': date.toIso8601String(),
           'timeSlot': timeSlot,
-          'reason': reason,
+          'reason': reason ?? '',
         },
       );
       final data = response.data as Map<String, dynamic>;
       return {
         'success': true,
         'message': data['message'] ?? 'Appointment booked successfully',
-        'appointment': data['appointment'] != null ? Appointment.fromJson(data['appointment']) : null,
+        'appointment': data['appointment'],
       };
-    } on DioException catch (_) {
-      return _hub.bookAppointment(doctorId: doctorId, date: date, timeSlot: timeSlot, reason: reason);
-    } catch (_) {
-      return _hub.bookAppointment(doctorId: doctorId, date: date, timeSlot: timeSlot, reason: reason);
+    } on DioException catch (e) {
+      final isNetwork = e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.connectionError ||
+          e.response == null;
+      if (isNetwork) {
+        return _hub.bookAppointment(doctorId: doctorId, date: date, timeSlot: timeSlot, reason: reason);
+      }
+      final msg = e.response?.data?['message'] ?? 'Failed to book appointment (${e.response?.statusCode})';
+      return {'success': false, 'message': msg};
+    } catch (e) {
+      return {'success': false, 'message': 'An error occurred. Please try again.'};
     }
   }
 
