@@ -1,0 +1,38 @@
+
+  Widget _buildPlanStep() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Prescriptions', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            ElevatedButton.icon(
+              onPressed: _addPrescription,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Add'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (_prescriptions.isEmpty)
+          Container(padding: const EdgeInsets.all(16), child: const Text('No prescriptions'))
+        else
+          ..._prescriptions.map((p) => Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            child: Text('${p['name']} - ${p['dosage']}'),
+          )).toList(),
+      ],
+    );
+  }
+
+  void _onStepContinue() => setState(() => _currentStep++);
+  void _onStepCancel() => setState(() => _currentStep--);
+  void _addPrescription() {}
+  void _addLabTest() {}
+  void _addHealthProgram() {}
+  void _addReferral() {}
+  Future<void> _completeConsultation() async {}
+  Future<void> _saveAsDraft() async {}
+}

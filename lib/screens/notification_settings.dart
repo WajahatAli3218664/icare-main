@@ -1,0 +1,313 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_size_matters/flutter_size_matters.dart';
+import 'package:flutter_switch/flutter_switch.dart';
+import 'package:icare/utils/theme.dart';
+import 'package:icare/utils/utils.dart';
+import 'package:icare/widgets/back_button.dart';
+import 'package:icare/widgets/custom_button.dart';
+import 'package:icare/widgets/custom_text.dart';
+
+class NotificationSettings extends StatelessWidget {
+  const NotificationSettings({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> _settingsList = [
+      {"id": "2", "title": "Booking Updates", "onPress": () {}},
+      {"id": "3", "title": "Customer Support Messages", "onPress": () {}},
+      {"id": "4", "title": "Patient Messages", "onPress": () {}},
+      {"id": "5", "title": "Admin Announcements", "onPress": () {}},
+    ];
+    if (MediaQuery.of(context).size.width > 600) {
+      return const _WebNotificationSettingsScreen();
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: CustomBackButton(),
+        title: CustomText(
+          text: "Notifications Settings",
+          fontSize: 16.78,
+          fontFamily: "Gilroy-Bold",
+          color: AppColors.primary500,
+          letterSpacing: -0.31,
+          lineHeight: 1.0,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      body: Padding(
+        padding: EdgeInsets.symmetric(horizontal: ScallingConfig.scale(20)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: Utils.windowWidth(context) * 0.85,
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                children: _settingsList.map((item) {
+                  return GestureDetector(
+                    onTap: item["onPress"],
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            // vertical: 12.0,
+                            horizontal: 18.0,
+                            vertical: 10,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              CustomText(
+                                text: item["title"],
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: AppColors.primary500,
+                                fontFamily: "Gilroy-SemiBold",
+                              ),
+                              FlutterSwitch(
+                                width: 50.0,
+                                height: 20.0,
+
+                                toggleSize: 15.0,
+                                value: true,
+                                borderRadius: 30.0,
+                                padding: 2.0,
+                                toggleColor: Color.fromRGBO(225, 225, 225, 1),
+                                activeColor: AppColors.themeBlack,
+                                inactiveColor: AppColors.darkGreyColor,
+                                onToggle: (val) {
+                                  // setState(() {
+                                  // status2 = val;
+                                  // });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (item['id'] != "5")
+                          const Divider(
+                            color: AppColors.darkGreyColor,
+                            thickness: 0.2,
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            SizedBox(height: Utils.windowHeight(context) * 0.5),
+            CustomButton(
+              borderRadius: 30,
+              onPressed: () {},
+              label: "Delete Account",
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NEW STUNNING WEB VIEW
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _WebNotificationSettingsScreen extends StatefulWidget {
+  const _WebNotificationSettingsScreen();
+
+  @override
+  State<_WebNotificationSettingsScreen> createState() => _WebNotificationSettingsScreenState();
+}
+
+class _WebNotificationSettingsScreenState extends State<_WebNotificationSettingsScreen> {
+  // Local state for switches to make the UI interactive
+  Map<String, bool> settingsState = {
+    "Booking Updates": true,
+    "Customer Support Messages": true,
+    "Patient Messages": false,
+    "Admin Announcements": true,
+  };
+
+  final Map<String, String> settingDescriptions = {
+    "Booking Updates": "Get notified when new appointments are booked, rescheduled, or canceled.",
+    "Customer Support Messages": "Receive instant alerts when the support team responds to your queries.",
+    "Patient Messages": "Stay updated when your patients send you direct messages.",
+    "Admin Announcements": "Important system updates and broadcast messages from administrators.",
+  };
+
+  final Map<String, IconData> settingIcons = {
+    "Booking Updates": Icons.event_available_rounded,
+    "Customer Support Messages": Icons.support_agent_rounded,
+    "Patient Messages": Icons.chat_bubble_outline_rounded,
+    "Admin Announcements": Icons.campaign_rounded,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F6FB),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        automaticallyImplyLeading: false,
+        leading: CustomBackButton(),
+        title: CustomText(
+          text: "Notification Preferences",
+          fontFamily: "Gilroy-Bold",
+          fontSize: 20,
+          color: AppColors.primaryColor,
+          fontWeight: FontWeight.bold,
+          letterSpacing: -0.31,
+          lineHeight: 1.0,
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1200),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Left: Header Info ──
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.notifications_active_rounded, color: AppColors.primaryColor, size: 32),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text("Push & Email Alerts", style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, fontFamily: "Gilroy-Bold", color: Color(0xFF1E293B))),
+                      const SizedBox(height: 12),
+                      const Text("Control exactly what alerts you want to receive and how you receive them so you are never overwhelmed.", style: TextStyle(fontSize: 15, color: Color(0xFF64748B), height: 1.5)),
+                      const SizedBox(height: 48),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Preferences saved successfully.")),
+                            );
+                            Navigator.of(context).pop();
+                          },
+                          icon: const Icon(Icons.save_rounded, size: 20),
+                          label: const Text("Save Preferences", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, fontFamily: "Gilroy-SemiBold")),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 48),
+
+                // ── Right: List of Toggles ──
+                Expanded(
+                  flex: 5,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: const Color(0xFFF1F4F9), width: 1.5),
+                      boxShadow: const [BoxShadow(color: Color(0x05000000), offset: Offset(0, 4), blurRadius: 20)],
+                    ),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: settingsState.keys.length,
+                      separatorBuilder: (context, index) => const Divider(color: Color(0xFFF1F5F9), height: 1, thickness: 1.5),
+                      itemBuilder: (context, index) {
+                        final key = settingsState.keys.elementAt(index);
+                        final val = settingsState[key]!;
+                        final desc = settingDescriptions[key]!;
+                        final icon = settingIcons[key]!;
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: val ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(icon, color: val ? AppColors.primaryColor : const Color(0xFF94A3B8), size: 20),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      key,
+                                      style: TextStyle(
+                                        fontSize: 16, 
+                                        fontWeight: FontWeight.w600, 
+                                        color: val ? const Color(0xFF1E293B) : const Color(0xFF64748B), 
+                                        fontFamily: "Gilroy-SemiBold"
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      desc,
+                                      style: TextStyle(fontSize: 13, color: val ? const Color(0xFF64748B) : const Color(0xFF94A3B8), height: 1.4),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              FlutterSwitch(
+                                width: 50.0,
+                                height: 26.0,
+                                toggleSize: 18.0,
+                                value: val,
+                                borderRadius: 30.0,
+                                padding: 4.0,
+                                toggleColor: Colors.white,
+                                activeColor: AppColors.primaryColor,
+                                inactiveColor: const Color(0xFFCBD5E1),
+                                onToggle: (newVal) {
+                                  setState(() {
+                                    settingsState[key] = newVal;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      ),
+    );
+  }
+}

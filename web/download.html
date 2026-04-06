@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download iCare App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+            font-weight: bold;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px 0;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .web-btn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .web-btn:hover {
+            background: #f8f9ff;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .info {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .icon {
+            font-size: 24px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .download-btn {
+                width: 100%;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">iC</div>
+        <h1>Download iCare</h1>
+        <p class="subtitle">Your healthcare companion</p>
+
+        <a href="https://github.com/WajahatAli3218664/icare-main/releases/download/v1.0.0/icare-v1.0.0.apk" class="download-btn" download>
+            <span class="icon">📱</span>
+            Download Android APK
+        </a>
+
+        <br>
+
+        <a href="/" class="download-btn web-btn">
+            <span class="icon">🌐</span>
+            Open Web Version
+        </a>
+
+        <div class="info">
+            <strong>📋 Installation Instructions:</strong><br>
+            1. Download the APK file<br>
+            2. Enable "Install from Unknown Sources" in Settings<br>
+            3. Open the downloaded file and install<br>
+            4. Enjoy the app!
+        </div>
+    </div>
+
+    <script>
+        // Detect if user is on mobile and show appropriate message
+        if (/Android/i.test(navigator.userAgent)) {
+            console.log('Android device detected');
+        } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            document.querySelector('.download-btn').innerHTML = '<span class="icon">🍎</span> iOS version coming soon';
+            document.querySelector('.download-btn').style.opacity = '0.6';
+            document.querySelector('.download-btn').style.cursor = 'not-allowed';
+            document.querySelector('.download-btn').onclick = function(e) {
+                e.preventDefault();
+                alert('iOS version is coming soon! Please use the web version for now.');
+            };
+        }
+    </script>
+</body>
+</html>
