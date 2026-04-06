@@ -25,11 +25,11 @@ class AuthService {
           response = await _apiService.post(
             ApiConfig.register,
             {
-              'username': name,
+              'name': name,
               'email': email,
               'password': password,
               'role': role,
-              'phone': phoneNumber ?? '',
+              'phoneNumber': phoneNumber ?? '',
             },
           );
           break;
@@ -117,46 +117,62 @@ class AuthService {
           final data = response0.data;
           print('✅ Login response data: $data');
 
-          final inner = data['data'] ?? data;
+          // Handle both wrapped {data: {...}} and flat {...} responses
+          final Map<String, dynamic> inner = data is Map && data.containsKey('data') 
+              ? data['data'] 
+              : data;
+              
           final token = inner['token']?.toString() ?? '';
+          final role = inner['role']?.toString() ?? '';
 
           if (token.isEmpty) {
             print('❌ No token in response');
             return {'success': false, 'message': 'No token received from server'};
           }
 
+          if (role.isEmpty) {
+            print('❌ No role in response');
+            return {'success': false, 'message': 'User role not defined in response'};
+          }
+
           await _saveToken(token);
-          FcmService().getAndSaveToken();
+          // Store role using the existing shared pref utility
+          await _sharedPref.setUserRole(role);
+          
+          try {
+            await FcmService().getAndSaveToken();
+          } catch (fcmError) {
+            print('⚠️ FCM Token Error (ignoring for login): $fcmError');
+          }
 
           return {
             'success': true,
             'data': inner,
-            'message': data['message'] ?? 'Login successful'
+            'message': data is Map ? data['message'] ?? 'Login successful' : 'Login successful'
           };
         } catch (parseError) {
           print('❌ Login parse error: $parseError');
-          return {'success': false, 'message': 'Login succeeded but data format error. Please try again.'};
+          return {'success': false, 'message': 'Login succeeded but data format error: $parseError'};
         }
       }
 
       final errData = response0.data;
       return {'success': false, 'message': errData?['message'] ?? 'Login failed (${response0.statusCode})'};
     } catch (e) {
-      print('❌ Login error: $e');
-      // AGGRESSIVE FALLBACK: Any error → try standalone mode
-      try {
-        print('🔄 Attempting standalone mode fallback...');
-        final fallback = await _hub.login(email: email, password: password);
-        if (fallback['success'] == true) {
-          await _saveToken(fallback['data']['token']);
-          FcmService().getAndSaveToken();
-          print('✅ Standalone login successful');
+      print('❌ Login error type: ${e.runtimeType}');
+      print('❌ Login error detail: $e');
+      if (e is DioException) {
+        print('❌ Dio type: ${e.type}');
+        print('❌ Dio message: ${e.message}');
+        print('❌ Dio response: ${e.response?.data}');
+        print('❌ Dio status: ${e.response?.statusCode}');
+        // If server responded with an error, don't fall back to standalone
+        if (e.response != null) {
+          return {'success': false, 'message': e.response?.data?['message'] ?? 'Login failed'};
         }
-        return fallback;
-      } catch (fallbackError) {
-        print('❌ Fallback also failed: $fallbackError');
-        return {'success': false, 'message': 'Unable to connect. Please check your internet connection.'};
+        return {'success': false, 'message': 'Network error: ${e.message ?? e.type.name}'};
       }
+      return {'success': false, 'message': 'Error: $e'};
     }
   }
 

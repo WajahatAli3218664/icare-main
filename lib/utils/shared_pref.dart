@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:icare/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,20 +7,8 @@ class SharedPref {
 
   Future<SharedPreferences> get _prefs async {
     if (_prefsInstance != null) return _prefsInstance!;
-
-    if (kIsWeb) {
-      // Use regular SharedPreferences on web
-      _prefsInstance = await SharedPreferences.getInstance();
-      return _prefsInstance!;
-    } else {
-      // Use cached version on mobile for better performance
-      _prefsInstance = await SharedPreferencesWithCache.create(
-        cacheOptions: const SharedPreferencesWithCacheOptions(
-          allowList: <String>{'auth', 'userData', 'token', 'userRole', 'walkthrough'}
-        )
-      ) as SharedPreferences;
-      return _prefsInstance!;
-    }
+    _prefsInstance = await SharedPreferences.getInstance();
+    return _prefsInstance!;
   }
 
   Future<void> setUserData(User userData) async {
