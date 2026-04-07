@@ -1,15 +1,18 @@
-
 import 'package:dio/dio.dart';
 import '../utils/shared_pref.dart';
 import 'api_service.dart';
 import 'api_config.dart';
 import 'fcm_service.dart';
-import 'standalone_care_hub_service.dart';
 
 class AuthService {
   final ApiService _apiService = ApiService();
   final SharedPref _sharedPref = SharedPref();
-  final StandaloneCareHubService _hub = StandaloneCareHubService();
+
+  // Hostinger backend expects: Patient, Doctor, Pharmacy, Laboratory etc
+  String _capitalizeRole(String role) {
+    if (role.isEmpty) return role;
+    return role[0].toUpperCase() + role.substring(1).toLowerCase();
+  }
 
   Future<Map<String, dynamic>> register({
     required String name,
@@ -20,72 +23,43 @@ class AuthService {
   }) async {
     try {
       Response? response;
-      for (int attempt = 1; attempt <= 2; attempt++) {
+      for (int attempt = 1; attempt <= 3; attempt++) {
         try {
           response = await _apiService.post(
             ApiConfig.register,
             {
-              'username': name,
+              'name': name,
               'email': email,
               'password': password,
-              'role': role,
+              'role': _capitalizeRole(role),
               'phone': phoneNumber ?? '',
             },
           );
           break;
         } on DioException catch (e) {
-          if (attempt == 2 || !_isNetworkError(e)) rethrow;
-          print('🔄 Register attempt $attempt failed, retrying...');
-          await Future.delayed(const Duration(seconds: 3));
+          if (attempt == 3 || !_isNetworkError(e)) rethrow;
+          await Future.delayed(const Duration(seconds: 5));
         }
       }
-      final response0 = response!;
 
-      if (response0.statusCode == 201 || response0.statusCode == 200) {
-        try {
-          final data = response0.data;
-          print('✅ Register response: $data');
-
-          final token = data['data']?['token']?.toString() ??
-                       data['token']?.toString() ??
-                       '';
-
-          if (token.isNotEmpty) {
-            await _saveToken(token);
-          }
-
-          return {
-            'success': true,
-            'data': data['data'] ?? data,
-            'message': data['message'] ?? 'Registration successful'
-          };
-        } catch (parseError) {
-          print('❌ Register parse error: $parseError');
-          return {'success': false, 'message': 'Registration succeeded but data format error. Please login manually.'};
-        }
+      final res = response!;
+      if (res.statusCode == 201 || res.statusCode == 200) {
+        final data = res.data as Map<String, dynamic>;
+        final token = data['token']?.toString() ??
+            data['data']?['token']?.toString() ?? '';
+        if (token.isNotEmpty) await _saveToken(token);
+        return {
+          'success': true,
+          'data': data,
+          'message': data['message'] ?? 'Registration successful',
+        };
       }
-      return {'success': false, 'message': 'Registration failed'};
+      final msg = (res.data as Map?)?['message']?.toString() ?? 'Registration failed';
+      return {'success': false, 'message': msg};
+    } on DioException catch (e) {
+      return {'success': false, 'message': _friendlyError(e)};
     } catch (e) {
-      print('❌ Register error: $e');
-      // AGGRESSIVE FALLBACK: Any error → try standalone mode
-      try {
-        print('🔄 Attempting standalone mode fallback...');
-        final fallback = await _hub.register(
-          name: name,
-          email: email,
-          password: password,
-          role: role,
-          phoneNumber: phoneNumber,
-        );
-        if (fallback['success'] == true) {
-          await _saveToken(fallback['data']['token']);
-          print('✅ Standalone registration successful');
-        }
-        return fallback;
-      } catch (fallbackError) {
-        print('❌ Fallback also failed: $fallbackError');
-        return {'success': false, 'message': 'Unable to connect. Please check your internet connection.'};
-      }
+      return {'success': false, 'message': 'Error: ${e.toString()}'};
     }
   }
 
@@ -94,10 +68,8 @@ class AuthService {
     required String password,
   }) async {
     try {
-      print('🔐 Starting login process...');
       Response? response;
-      // Retry up to 2 times to handle Vercel cold starts
-      for (int attempt = 1; attempt <= 2; attempt++) {
+      for (int attempt = 1; attempt <= 3; attempt++) {
         try {
           response = await _apiService.post(
             ApiConfig.login,
@@ -105,58 +77,49 @@ class AuthService {
           );
           break;
         } on DioException catch (e) {
-          if (attempt == 2 || !_isNetworkError(e)) rethrow;
-          print('🔄 Login attempt $attempt failed, retrying...');
-          await Future.delayed(const Duration(seconds: 3));
-        }
-      }
-      final response0 = response!;
-
-      if (response0.statusCode == 200) {
-        try {
-          final data = response0.data;
-          print('✅ Login response data: $data');
-
-          final inner = data['data'] ?? data;
-          final token = inner['token']?.toString() ?? '';
-
-          if (token.isEmpty) {
-            print('❌ No token in response');
-            return {'success': false, 'message': 'No token received from server'};
-          }
-
-          await _saveToken(token);
-          FcmService().getAndSaveToken();
-
-          return {
-            'success': true,
-            'data': inner,
-            'message': data['message'] ?? 'Login successful'
-          };
-        } catch (parseError) {
-          print('❌ Login parse error: $parseError');
-          return {'success': false, 'message': 'Login succeeded but data format error. Please try again.'};
+          if (attempt == 3 || !_isNetworkError(e)) rethrow;
+          await Future.delayed(const Duration(seconds: 5));
         }
       }
 
-      final errData = response0.data;
-      return {'success': false, 'message': errData?['message'] ?? 'Login failed (${response0.statusCode})'};
+      final res = response!;
+      if (res.statusCode == 200) {
+        final data = res.data as Map<String, dynamic>;
+        // Hostinger returns token at top level, Vercel inside data
+        final inner = data['data'] ?? data;
+        final token = inner['token']?.toString() ?? data['token']?.toString() ?? '';
+        if (token.isEmpty) {
+          return {'success': false, 'message': 'No token received from server'};
+        }
+        await _saveToken(token);
+        FcmService().getAndSaveToken();
+        return {
+          'success': true,
+          'data': inner is Map ? inner : data,
+          'message': data['message'] ?? 'Login successful',
+        };
+      }
+      final msg = (res.data as Map?)?['message']?.toString() ?? 'Login failed (${res.statusCode})';
+      return {'success': false, 'message': msg};
+    } on DioException catch (e) {
+      return {'success': false, 'message': _friendlyError(e)};
     } catch (e) {
-      print('❌ Login error: $e');
-      // AGGRESSIVE FALLBACK: Any error → try standalone mode
-      try {
-        print('🔄 Attempting standalone mode fallback...');
-        final fallback = await _hub.login(email: email, password: password);
-        if (fallback['success'] == true) {
-          await _saveToken(fallback['data']['token']);
-          FcmService().getAndSaveToken();
-          print('✅ Standalone login successful');
-        }
-        return fallback;
-      } catch (fallbackError) {
-        print('❌ Fallback also failed: $fallbackError');
-        return {'success': false, 'message': 'Unable to connect. Please check your internet connection.'};
-      }
+      return {'success': false, 'message': 'Error: ${e.toString()}'};
+    }
+  }
+
+  String _friendlyError(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+        return 'Connection timed out. Please try again.';
+      case DioExceptionType.receiveTimeout:
+        return 'Server took too long to respond. Please try again.';
+      case DioExceptionType.connectionError:
+        return 'Cannot reach server. Please check your internet connection.';
+      default:
+        final msg = (e.response?.data as Map?)?['message']?.toString();
+        return msg ?? 'Network error. Please try again.';
     }
   }
 
@@ -172,8 +135,6 @@ class AuthService {
     await _sharedPref.setToken(token);
   }
 
-  Future<void> _saveUserData(Map<String, dynamic> userData) async {}
-
   Future<String?> getToken() async {
     return await _sharedPref.getToken();
   }
@@ -186,50 +147,29 @@ class AuthService {
 
   Future<Map<String, dynamic>> forgotPassword({required String email}) async {
     try {
-      final response = await _apiService.post(
-        ApiConfig.forgetPassword,
-        {'email': email},
-      );
-
+      final response = await _apiService.post(ApiConfig.forgetPassword, {'email': email});
       if (response.statusCode == 200) {
-        return {
-          'success': true,
-          'message': 'OTP sent to your email',
-          'otp': response.data['otp'],
-        };
+        return {'success': true, 'message': 'OTP sent to your email', 'otp': response.data['otp']};
       }
       return {'success': false, 'message': 'Failed to send OTP'};
-    } on DioException catch (_) {
-      return {
-        'success': true,
-        'message': 'Password reset is not connected to a live backend in standalone mode. Please use demo password Pass@123 or create a new account.',
-      };
+    } on DioException catch (e) {
+      return {'success': false, 'message': _friendlyError(e)};
     } catch (_) {
-      return {
-        'success': true,
-        'message': 'Password reset is not connected to a live backend in standalone mode. Please use demo password Pass@123 or create a new account.',
-      };
+      return {'success': false, 'message': 'Unexpected error. Please try again.'};
     }
   }
 
-  Future<Map<String, dynamic>> verifyOTP({
-    required String email,
-    required String code,
-  }) async {
+  Future<Map<String, dynamic>> verifyOTP({required String email, required String code}) async {
     try {
-      final response = await _apiService.post(
-        ApiConfig.checkOTP,
-        {'email': email, 'code': code},
-      );
-
+      final response = await _apiService.post(ApiConfig.checkOTP, {'email': email, 'code': code});
       if (response.statusCode == 200) {
         return {'success': true, 'message': 'OTP verified successfully'};
       }
       return {'success': false, 'message': 'Invalid OTP'};
-    } on DioException catch (_) {
-      return {'success': true, 'message': 'OTP verification bypassed in standalone demo mode'};
+    } on DioException catch (e) {
+      return {'success': false, 'message': _friendlyError(e)};
     } catch (_) {
-      return {'success': true, 'message': 'OTP verification bypassed in standalone demo mode'};
+      return {'success': false, 'message': 'Unexpected error. Please try again.'};
     }
   }
 
@@ -239,23 +179,19 @@ class AuthService {
     required String confirmPassword,
   }) async {
     try {
-      final response = await _apiService.post(
-        ApiConfig.resetPassword,
-        {
-          'email': email,
-          'password': password,
-          'confirmpassword': confirmPassword,
-        },
-      );
-
+      final response = await _apiService.post(ApiConfig.resetPassword, {
+        'email': email,
+        'password': password,
+        'confirmpassword': confirmPassword,
+      });
       if (response.statusCode == 200) {
         return {'success': true, 'message': 'Password reset successfully'};
       }
       return {'success': false, 'message': 'Failed to reset password'};
-    } on DioException catch (_) {
-      return {'success': true, 'message': 'Standalone mode does not persist password reset flows yet.'};
+    } on DioException catch (e) {
+      return {'success': false, 'message': _friendlyError(e)};
     } catch (_) {
-      return {'success': true, 'message': 'Standalone mode does not persist password reset flows yet.'};
+      return {'success': false, 'message': 'Unexpected error. Please try again.'};
     }
   }
 }

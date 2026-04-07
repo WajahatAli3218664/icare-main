@@ -1141,134 +1141,91 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => isLoading = true);
-
     try {
       if (isLogin) {
-        print("🔐 Starting login process...");
-
-        // Login
         final result = await _authService.login(
           email: usernameController.text.trim(),
           password: passwordController.text.trim(),
         );
-
-        print("📥 Login result: ${result['success']}");
-
-        if (result['success']) {
-          print("✅ Login successful, token saved");
-
-          final token = result['data']['token'];
-          print("🔑 Token from login: ${token.substring(0, 20)}...");
-
-          // Try to fetch profile, but fall back to login response data if it fails
+        if (result['success'] == true) {
+          final data = result['data'] as Map<String, dynamic>? ?? {};
+          final token = data['token']?.toString() ?? '';
+          if (token.isEmpty) { _showError('Login failed: no token received.'); return; }
+          ref.read(authProvider.notifier).setUserToken(token);
+          Map<String, dynamic>? rawUser;
           final profileResult = await _userService.getUserProfile(token: token);
-          print("📥 Profile result: ${profileResult['success']}");
-
-          Map<String, dynamic>? userData;
-          if (profileResult['success']) {
-            userData = profileResult['user'];
-          } else if (result['data']['user'] != null) {
-            // Use user data from login response directly
-            userData = result['data']['user'] as Map<String, dynamic>;
-            print("⚠️ Profile fetch failed, using login response user data");
+          if (profileResult['success'] == true) {
+            rawUser = profileResult['user'] as Map<String, dynamic>?;
           }
-
-          if (userData != null && mounted) {
-            print("📋 User data: $userData");
-            final user = app_user.User.fromJson(userData);
-            print("👤 User object: ${user.name}, ${user.email}, ${user.role}");
-
+          rawUser ??= data['user'] as Map<String, dynamic>?;
+          rawUser ??= (data['email'] != null ? data : null);
+          if (rawUser != null && rawUser['email'] != null && mounted) {
+            final user = app_user.User.fromJson(rawUser);
             ref.read(authProvider.notifier).setUser(user);
-            ref.read(authProvider.notifier).setUserToken(token);
-
-            final currentRole = ref.read(authProvider).userRole;
-            print("🔍 Current role in provider: '$currentRole'");
-
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (ctx) => const TabsScreen()),
             );
           } else {
-            print("❌ Failed to get user data: ${profileResult['message']}");
-            _showError('Failed to load user profile: ${profileResult['message']}');
+            _showError('Could not load profile. Please try again.');
           }
         } else {
-          print("❌ Login failed: ${result['message']}");
-          _showError(result['message']);
+          _showError(result['message']?.toString() ?? 'Login failed.');
         }
       } else {
-        // Sign Up - Get role from provider
         final selectedRole = ref.read(authProvider).userRole;
-
         if (selectedRole.isEmpty) {
           _showError('Please select your role first');
           setState(() => isLoading = false);
           return;
         }
-
-        // Check if terms are accepted
         if (!acceptTerms) {
           _showError('Please accept the Terms & Conditions to continue');
           setState(() => isLoading = false);
           return;
         }
-
-        // Map frontend roles to backend roles
-        String backendRole = _mapRoleToBackend(selectedRole);
-
         final result = await _authService.register(
           name: usernameController.text.trim(),
           email: emailController.text.trim(),
           password: passwordController.text.trim(),
-          role: backendRole,
+          role: _mapRoleToBackend(selectedRole),
           phoneNumber: phoneController.text.trim(),
         );
-
-        if (result['success']) {
-          // Set token in provider first
-          final token = result['data']['token'];
+        if (result['success'] == true) {
+          final data = result['data'] as Map<String, dynamic>? ?? {};
+          final token = data['token']?.toString() ?? '';
+          if (token.isEmpty) { _showError('Registration failed: no token received.'); return; }
           ref.read(authProvider.notifier).setUserToken(token);
-          
-          // Fetch user profile after registration, passing token directly
+          Map<String, dynamic>? rawUser;
           final profileResult = await _userService.getUserProfile(token: token);
-          
-          if (profileResult['success'] && mounted) {
-            final userData = profileResult['user'];
-            final user = app_user.User.fromJson(userData);
+          if (profileResult['success'] == true) {
+            rawUser = profileResult['user'] as Map<String, dynamic>?;
+          }
+          rawUser ??= data['user'] as Map<String, dynamic>?;
+          rawUser ??= (data['email'] != null ? data : null);
+          if (rawUser != null && rawUser['email'] != null && mounted) {
+            final user = app_user.User.fromJson(rawUser);
             ref.read(authProvider.notifier).setUser(user);
-            
-            // Redirect based on user role
-            if (user.role == 'Laboratory') {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (ctx) => const LabProfileSetup()),
-              );
-            } else if (user.role == 'Pharmacy') {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (ctx) => const PharmacyProfileSetup(),
-                ),
-              );
-            } else if (user.role == 'Student') {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (ctx) => const StudentProfileSetup(),
-                ),
-              );
+            final role = user.role.toLowerCase();
+            if (role == 'laboratory' || role == 'lab') {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (ctx) => const LabProfileSetup()));
+            } else if (role == 'pharmacy') {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (ctx) => const PharmacyProfileSetup()));
+            } else if (role == 'student') {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (ctx) => const StudentProfileSetup()));
             } else {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (ctx) => const TabsScreen()),
-              );
+              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (ctx) => const TabsScreen()));
             }
           } else {
-            _showError('Failed to load user profile');
+            _showError('Could not load profile. Please try logging in.');
           }
         } else {
-          _showError(result['message']);
+          _showError(result['message']?.toString() ?? 'Registration failed.');
         }
       }
-    } catch (e) {
-      _showError('An error occurred. Please try again.');
+    } catch (e, stack) {
+      print('Error: $e\n$stack');
+      _showError('Error: ${e.toString()}');
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
